@@ -10,7 +10,7 @@ app.get("/scrape", (req, res) =>{
 });
 
 app.post("/scrape", (req, res) =>{
-    scrapeLogic(res);
+    scrapeLogic(req,res);
 });
 
 app.listen(PORT, () =>{
