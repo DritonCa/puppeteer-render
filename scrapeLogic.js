@@ -1,7 +1,9 @@
 const puppeteer = require("puppeteer");
 require("dotenv").config();
 
-const scrapeLogic = async (res) => {
+const scrapeLogic = async (req,res) => {
+
+    const url = req.body.url;
 
     // Launch the browser and open a new blank page
     const browser = await puppeteer.launch({
@@ -12,36 +14,91 @@ const scrapeLogic = async (res) => {
             "--no-zygote",
         ],
         executablePath:
-         process.env.NODE_ENV === 'production' 
-            ? process.env.PUPPETEER_EXECUTABLE_PATH
-            : puppeteer.executablePath(),
+            process.env.NODE_ENV === 'production'
+                ? process.env.PUPPETEER_EXECUTABLE_PATH
+                : puppeteer.executablePath(),
     }
     );
     try {
 
+        // Create a new page with the default browser context 
         const page = await browser.newPage();
 
-        // Navigate the page to a URL
-        await page.goto('https://developer.chrome.com/');
+        // Go to the target website 
+        await page.goto(url);
 
-        // Set screen size
-        await page.setViewport({ width: 1080, height: 1024 });
+        // Inject jQuery into the page
+        await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.6.0.min.js' });
 
-        // Type into search box
-        await page.type('.devsite-search-field', 'automate beyond recorder');
+        // Extract data using jQuery
+        const filteredData = await page.evaluate(() => {
+            // Extract data from elements with specified classes
+            const englishData = $('.englishcontainer').text().trim();
+            const arabicData = $('.arabic_hadith_full').text().trim();
+            const englishGrade = $('.english_grade').text().trim();
+            const arabicGrade = $('.arabic_grade').text().trim();
+            const reference = $('.hadith_reference').text().trim();
 
-        // Wait and click on first result
-        const searchResultSelector = '.devsite-result-item-link';
-        await page.waitForSelector(searchResultSelector);
-        await page.click(searchResultSelector);
 
-        // Locate the full title with a unique string
-        const textSelector = await page.waitForSelector(
-            'text/Customize and automate'
-        );
-        const fullTitle = await textSelector?.evaluate(el => el.textContent);
+            const splitEnglishData = englishData.split(':');
 
-        res.send('The title of this blog post is ' + fullTitle);
+            const narrattor = splitEnglishData[0].trim();
+            const narration = splitEnglishData[1].trim();
+
+            const trimmedArabicGrade = arabicGrade.replace(/\u062d\u0643\u0645\s*:/, '').trim();
+
+            const match = englishGrade.match(/Grade:\s*([^()]+)\s*\(([^)]+)\)/);
+
+            let grade;
+            let commentator;
+
+            if (match) {
+                grade = match[1].trim();
+                commentator = match[2].trim()
+            } else {
+                // If no match found, use the original string as the grade
+                grade = englishGrade;
+            }
+
+            const matchArabic = trimmedArabicGrade.match(/^([^()]+)\s*\(([^)]+)\)$/);
+
+            let gradeArabic;
+            let commentatorArabic;
+
+            if (matchArabic) {
+                gradeArabic = matchArabic[1].trim();
+                commentatorArabic = matchArabic[2].trim();
+            } else {
+                // If no match found, assume the whole string is the grade
+                gradeArabic = trimmedArabicGrade.trim();
+                commentator = "";
+            }
+
+
+            // Split the text into an array based on "In-book reference" and "English translation"
+            const parts = reference.split(/In-book reference\s*:\s*|English translation\s*:/);
+
+            // Trim each part to remove leading and trailing whitespace
+            const references = parts[0].trim().replace(/^Reference\s*:\s*/, ''); // Remove "Reference :" prefix
+            const inBookReference = parts[1].trim();
+            const englishTranslation = parts[2].trim();
+
+            // Construct and return an object with filtered data
+            return {
+                narrattor,
+                narration,
+                arabicData,
+                grade,
+                commentator,
+                gradeArabic,
+                commentatorArabic,
+                references,
+                inBookReference
+            };
+        });
+
+        // Send the filtered data back in the response
+        res.json(filteredData);
 
     } catch (error) {
         console.error(error);
