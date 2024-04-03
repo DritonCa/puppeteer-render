@@ -9,6 +9,10 @@ app.get("/scrape", (req, res) =>{
     scrapeLogic(res);
 });
 
+app.post("/scrape", (req, res) =>{
+    scrapeLogic(res);
+});
+
 app.listen(PORT, () =>{
     console.log(`Listening on port ${PORT}`);
 })
