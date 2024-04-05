@@ -35,6 +35,10 @@ const scrapeLogic = async (req,res) => {
             // Extract data from elements with specified classes
             const englishData = $('.englishcontainer').text().trim();
             const arabicData = $('.arabic_hadith_full').text().trim();
+            let grade;
+            let commentator;
+            let gradeArabic;
+            let commentatorArabic;
             
             
             const reference = $('.hadith_reference').text().trim();
@@ -46,19 +50,19 @@ const scrapeLogic = async (req,res) => {
             const narration = splitEnglishData[1].trim();
 
             const englishGrade = $('.english_grade').text()?.trim();
+            console.log("test: " + englishGrade);
             if (englishGrade !== null && englishGrade !== undefined) {
             const match = englishGrade.match(/Grade:\s*([^()]+)\s*\(([^)]+)\)/);
 
-            let grade;
-            let commentator;
+           
 
-            if (match) {
-                grade = match[1].trim();
-                commentator = match[2].trim()
-            } else {
-                // If no match found, use the original string as the grade
-                grade = englishGrade;
-            }
+                if (match) {
+                    grade = match[1]?.trim();
+                    commentator = match[2]?.trim()
+                } else {
+                    // If no match found, use the original string as the grade
+                    grade = englishGrade;
+                }
             }
 
             const arabicGrade = $('.arabic_grade').text()?.trim();
@@ -66,8 +70,7 @@ const scrapeLogic = async (req,res) => {
             const trimmedArabicGrade = arabicGrade.replace(/\u062d\u0643\u0645\s*:/, '').trim();
             const matchArabic = trimmedArabicGrade.match(/^([^()]+)\s*\(([^)]+)\)$/);
 
-            let gradeArabic;
-            let commentatorArabic;
+           
 
             if (matchArabic) {
                 gradeArabic = matchArabic[1].trim();
