@@ -39,9 +39,6 @@ const scrapeLogic = async (req,res) => {
             let commentator;
             let gradeArabic;
             let commentatorArabic;
-            
-            
-            const reference = $('.hadith_reference').text().trim();
 
 
             const splitEnglishData = englishData.split(':');
@@ -80,7 +77,9 @@ const scrapeLogic = async (req,res) => {
                 gradeArabic = trimmedArabicGrade.trim();
                 commentator = "";
             }
-        }
+            }
+
+            const reference = $('.hadith_reference').text().trim();
 
 
             // Split the text into an array based on "In-book reference" and "English translation"
@@ -88,7 +87,7 @@ const scrapeLogic = async (req,res) => {
 
             // Trim each part to remove leading and trailing whitespace
             const references = parts[0].trim().replace(/^Reference\s*:\s*/, ''); // Remove "Reference :" prefix
-            const inBookReference = parts[1].trim();
+            const inBookReference = parts[1].trim().split('USC-MSA web (English) reference')[0];
 
             // Construct and return an object with filtered data
             return {
