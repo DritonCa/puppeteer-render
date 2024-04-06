@@ -34,6 +34,8 @@ const scrapeLogic = async (req,res) => {
         const filteredData = await page.evaluate(() => {
             // Extract data from elements with specified classes
             const englishData = $('.englishcontainer').text().trim();
+            const englishnarator = $('.hadith_narrated').text().trim();
+            const englishnaration = $('.text_details').text().trim();
             const arabicData = $('.arabic_hadith_full').text().trim();
             let grade;
             let commentator;
@@ -43,8 +45,8 @@ const scrapeLogic = async (req,res) => {
 
             const splitEnglishData = englishData.split(':');
 
-            const narrattor = splitEnglishData[0].trim();
-            const narration = splitEnglishData[1].trim();
+            const narrattor = englishnarator;
+            const narration = englishnaration;
 
             const englishGrade = $('.english_grade').text()?.trim();
             console.log("test: " + englishGrade);
